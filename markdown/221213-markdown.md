@@ -276,5 +276,64 @@ relative | 요소 자신 | X
 absolute | 위치 상 부모요소 | X
 fixed | 뷰포트 | x
 
+# 원시 HTML(Raw HTML)
+
+줄바꿈을 하고싶으면 스페이스바 2번을 입력하면 되지만, 이것이 적용되지 않는 환경이 존재한다.
+따라서 이때는 html태그를 추가하면 동일한 효과를 얻을 수 있다
+```
+동해물과 <u>백두산</u>이 마르고 닳도록 <br/>하느님이 보우하사 우리나라 만세
+```
+
+동해물과 <u>백두산</u>이 마르고 닳도록 <br/>하느님이 보우하사 우리나라 만세
+
+밑줄 같은 경우는 `span`태그를 사용하는것이 좋다.
+
+```
+동해물과 <span style="text-decoration: underline;">백두산</span>이 마르고 닳도록 <br/>하느님이 보우하사 우리나라 만세
+```
+
+동해물과 <span style="text-decoration: underline;">백두산</span>이 마르고 닳도록 <br/>하느님이 보우하사 우리나라 만세
+
+
+위의 링크 섹션에서 클릭하면 새로운 창에서 나타나게 설정하고 싶을 때, 
+```
+<a href="https://naver.com" title="NAVER로 이동!" target="_blank">NAVER<a/>
+```
+
+혹은 이미지의 너비를 수정하고 싶을 때,
+```
+<img width=200 src="https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="cookie"/>
+```
+<img width=200 src="https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"/>
+
+
+원시적인 HTML태그를 작성해서 원하는 기능을 구현한다.
+
+# 수평선(Horizontal Rule)
+아래의 세 기호중 하나를 연속으로 세번 작성하면 밑줄이 생성된다.
+
+```
+---
+```
+---
+
+```
+***
+```
+***
+
+```
+___
+```
+___
+
+
+예시(사이트 링크와 이미지 사이의 수평선)
+
+[NAVER](https://naver.com "NAVER로 이동!")
+
+---
+
+<img width=200 src="https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"/>
 
 
