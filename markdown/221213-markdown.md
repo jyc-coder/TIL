@@ -91,3 +91,55 @@ _이텔릭_
     - 순서가 필요하지 않은 목록
     - 순서가 필요하지 않은 목록
 - 순서가 필요하지 않은 목록
+
+
+# 링크(Links)
+
+html에서는 a태그를 사용한다.
+```
+<a href="https://google.com">GOOGLE<a/>
+```
+
+`[GOOGLE](https://google.com)`
+[GOOGLE](https://google.com)
+
+
+링크에 마우스를 올리면 세부내용이 나타나게 하고싶을 때
+
+```
+<a href="https://naver.com" title="NAVER로 이동!">NAVER<a/>
+```
+[NAVER](https://naver.com "NAVER로 이동!")
+
+
+클릭하여 새창에 나타나게 하는 마크다운 설정은 없으므로 a태그로 작성한다.
+```
+<a href="https://naver.com" title="NAVER로 이동!" target="_blankj">NAVER<a/>
+```
+
+# 이미지(Image)
+  ```
+  ![이미지 이름](이미지 링크)
+  ```
+
+  예시
+  ```
+   ![cookie](https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)
+  ```
+
+  ![cookie](https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)
+
+
+  이미지를 클릭하면 작성된 링크로 이동하게 만들고 싶을 때
+
+  ```
+  [![이미지 이름](이미지 링크)](이동 링크)
+  ```
+
+  예시
+  ```
+[![cookie](https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)](https://velog.io/@jhs000123)
+  ```
+
+  [![cookie](https://images.pexels.com/photos/230325/pexels-photo-230325.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)](https://velog.io/@jhs000123)
+
