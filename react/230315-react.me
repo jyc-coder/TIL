@@ -1,0 +1,895 @@
+# Redux
+상태 관리 라이브러리
+
+## Redux의 구조
+
+
+### 1) flux 패턴
+
+- MVC패턴
+
+Flux패턴이 등장하기 전에 대부분의 앱이 사용하고 있던 소프트웨어 디자인 패턴이다.
+
+model: 데이터를 보관
+Controller : 데이터에 대한 수정, 조회
+View: 데이터를 화면에 보여주는 역할
+
+이렇게 나누면 Controller 를 통해서 Model을 수정하고 그 데이터를 View에 보여주게 된다.
+
+이 패턴은 View에서 사용자와의 상호작용을 통해 Model을 수정할수 있도록 하고 있다.
+
+만약 Model 과 View가 많아지면  하나의 Model수정에 따라 여러 View가 수정되거나 View에서의 상호작용에 따라서 여러 Model 이 수정될 수 있다.
+
+> 정확이 어떤 데이터가 어떤 View를 통해서 수정이 되고, 어떤 View가 정확히 어떤 모델로부터 데이터를 받는지 그 흐름을 추적하는 것이 복잡해진다.
+
+- Flex패턴
+
+이런 복잡성을 해결 하고자 등장한 것이 바로 Flux 패턴이다.
+
+- Action: 데이터에 대해서 저오학히 어떤 상태 변화를 할지 지정
+
+- Dispatcher: Store에 Action을 전달하는 역할(동기적으로 실행되어 데이터 흐름을 관리)
+
+- Store : Dispatcher 로부터 action을 받아서 데이터의 상태를 변경하고 보관(상태가 변경되면 변경되었다고 알림)
+
+- View : 데이터를 화면에 보여주는 역할 (데이터를 자식 컴포넌트 등으로 보내주는 컨트롤러의 역할도 함께함)
+
+
+`redux`는 이 Flux패턴을 기반으로 만들어져있는데, 특징이자 차이점은 다음과 같다.
+
+- store는 데이터의 보관 역할만 담당
+- reducer가 데이터 갱신 역할을 담당함
+- dispatcher가 없음 (reducer가 대신 actions에 따른 전달을 담당함)
+
+
+### 2) Redux의 구조
+
+redux를 사용해서 카운터를 만든다
+
+- Action Type 정의
+
+type을 변수 형태로 미리 만들어 놓는 이유는, export를 해서 다른 파일에서 편하게 불러와서 사용할수 있도록 하기 위함이다.
+혹시나 있을 오타 등을 방지하기 위한 의도도 존재
+
+```jsx
+export const INC_COUNT = "INC_COUNT";
+export const DEC_COUNT = "DEC_COUNT";
+```
+
+
+- Action 생성 함수
+
+원칙저그로 항상 애션 객체를 리턴해야한다.
+action 객체를 reducer로 보내는 행위를 dispatch 라고 한다. dispatch에 action객체를 return하는 함수를 전달해서 사용하는 경우도 있다.
+
+
+
+```jsx
+export function incCount(diff) {
+    return {
+        type: INC_COUNT,
+        payload: {diff},
+    }
+}
+
+export function decCount(diff) {
+    return {
+        type: DEC_COUNT,
+        payload: {diff},
+    }
+}
+```
+
+- reducer 
+state는 불변성을 유지해야한다. 동일한 파라미터가 들어왔을 때는 동일한 결과를 출력해야한다.
+
+reducer는 state와 acction을 파라미터로 받는다.
+
+그래서 현태 상테에, action 객체를 토대로 변화를 주게 된다.
+
+```jsx
+function counter(state = initialState, action) {
+    switch (action.type) {
+      case INC_COUNT:
+        return state + 1
+      case DEC_COUNT:
+        return state - 1;
+      default:
+        return state;
+    }
+  }
+```
+
+
+- store 
+하나의 앱에는 하나의 스토어가 있도록 구성하는 것이 규칙!
+
+앞서 만든 리듀서와 상태를 담아놓은 것을 말한다. 이 store를 Provider라는 것을 통해 공유함으로써 ,어떤 컴포넌트에서든 리듀서와 상태를 가져와서 사용할수 있도록 코드를 작성한다.
+
+```jsx
+import { legacy_createStore as createStore } from "redux";
+import counter from "./reducers/counter";
+
+const store = createStore(counter);
+
+export default store;
+```
+
+```jsx
+import { Provider } from "react-redux";
+import store from './redux';
+
+function App() {
+  return (
+    <Provider store={store}>
+			<Counter />
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+### 3) useSelector, useDispatch
+
+- useSelector
+
+redux 로 관리중인 상태를 가져오기 위한 Hook
+state안에 number라는 데이터가 있다면, 아래처럼 가져올수 있다.
+dispatch를 통해서 state가 변하게 되면, 자동으로 useSelector를 통해서 받아온 state도 변하게 된다.
+
+```jsx
+import { useSelector } from 'react-redux'
+
+[Oconst { number } = useSelector(state => state)
+```
+
+- useDispatch 
+
+dispatch 함수를 실행할수 있도록 해주는 Hook이다.
+만들어진 액션 객체를 Reducer로 전달하는 과정을 수행해주는 Hook이라고 생각하면 된다.
+
+```jsx
+import { useDispatch } from 'react-redux'
+
+const dispatch = useDispatch()
+
+// 사용 예시
+dispatch(incCount(1))
+```
+
+### 4) Container Presenter 패턴
+
+- 리액트 디자인 패턴 중의 하나로, 기능과 UI를 컴포넌트 상으로 분리하는 것을 말한다.
+데이터를 처리하고 ,받아오는 부분은 `container`에서 담당하고, 
+데이터를 보여주는 부분(UI)는 `presenter`에서 담당하도록 분리하는 것이다. 
+
+
+container 예시
+
+presenter 컴포넌트로 props 형태로 넘겨주게 된다.
+```jsx
+import { useDispatch, useSelector } from 'react-redux';
+import Counter from '../components/Counter';
+import { incCount, decCount } from '../redux/actions/counter';
+
+function CounterContainer() {
+    const dispatch = useDispatch();
+    const number = useSelector((state) => state.number);
+
+    const onIncrease = () => {
+        dispatch(incCount(1));
+    }
+
+    const onDecrease = () => {
+        dispatch(decCount(1));
+    }
+
+    return <Counter number={number} onIncrease={onIncrease} onDecrease={onDecrease} />
+}
+
+export default CounterContainer
+```
+
+아래는 presenter 컴포넌트의 예시이다.
+
+container 컴포넌트에서 넘겨준 것을 받아서 ui를 만들어주게된다.
+
+```jsx
+import React from 'react'
+
+function Counter({number, onIncrease, onDecrease}) {
+  return (
+    <div>
+      <p>{number}</p>
+      <button onClick={onIncrease}>+1</button>
+      <button onClick={onDecrease}>-1</button>
+    </div>
+  )
+}
+
+export default Counter
+```
+
+### 6) 카운터 만들어보기
++1 -1 기능을 가진 카운터를 만들어본다.
+
+![](https://velog.velcdn.com/images/jhs000123/post/98c61ab9-4c01-446e-a27a-abafe3e4e545/image.png)
+
+
+constants 폴더의 counter 파일
+
+```jsx
+export const INC_COUNT = "INC_COUNT";
+export const DEC_COUNT = "DEC_COUNT";
+```
+
+actions 폴더의 counter
+
+```jsx
+import {INC_COUNT, DEC_COUNT} from '../constants/counter'
+
+export function incCount(diff) {
+    return {
+        type: INC_COUNT,
+        payload: {diff},
+    }
+}
+
+export function decCount(diff) {
+    return {
+        type: DEC_COUNT,
+        payload: {diff},
+    }
+}
+```
+
+reducers 폴더 내부에 리듀서 생성
+
+```jsx
+import { INC_COUNT, DEC_COUNT } from "../constants/counter";
+
+const initialState = {number: 0};
+
+export default function counter(state = initialState, action) {
+    switch (action.type) {
+      case INC_COUNT:
+        return {number: state.number + action.payload.diff}
+      case DEC_COUNT:
+        return {number: state.number - action.payload.diff};
+      default:
+        return state;
+    }
+}
+```
+
+store 폴더 의 store 생성
+
+```jsx
+import { legacy_createStore as createStore } from "redux";
+import counter from "../reducers/counter";
+
+const store = createStore(counter);
+
+export default store;
+```
+
+app.jsx 에서 Provider로 컴포넌트를 감싸주면 완료
+```jsx
+import Counter from "./components/Counter";
+import { Provider } from 'react-redux';
+import store from './store';
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter/>
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+Container 내부에 기능을 구현해서 컴포넌트에 props로 전달한다.
+```jsx
+import { useDispatch, useSelector } from 'react-redux';
+import Counter from '../components/Counter';
+import { incCount, decCount } from '../redux/actions/counter';
+
+function CounterContainer() {
+    const dispatch = useDispatch();
+    const number = useSelector((state) => state.number);
+
+    const onIncrease = () => {
+        dispatch(incCount(1));
+    }
+
+    const onDecrease = () => {
+        dispatch(decCount(1));
+    }
+
+    return <Counter number={number} onIncrease={onIncrease} onDecrease={onDecrease} />
+}
+
+export default CounterContainer
+```
+
+presenter는 아래와 같이 작성
+
+```jsx
+import React from 'react'
+
+function Counter({number, onIncrease, onDecrease}) {
+  return (
+    <div>
+      <p>{number}</p>
+      <button onClick={onIncrease}>+1</button>
+      <button onClick={onDecrease}>-1</button>
+    </div>
+  )
+}
+
+export default Counter
+```
+
+이제 마지막으로 CounterContainer를 App.jsx에서 표시하도록 변경
+```jsx
+import { Provider } from 'react-redux';
+import store from './redux/store/store';
+import CounterContainer from "./containers/CounterContainer";
+
+function App() {
+  return (
+    <Provider store={store}>
+      <CounterContainer/>
+    </Provider>
+  );
+}
+
+export default App;
+```
+### 7) 카운터 만들어보기 duck패턴
+이전에는 액션타입, 액션 생성 함수, 초기값, 리듀서를 따로 선언했지만 이번에는 하나의 파일안에 전부 작성한다.
+```jsx
+// 액션 타입
+const INC_COUNT = "counter/INC_COUNT";
+const DEC_COUNT = "counter/DEC_COUNt";
+
+// 액션 생성 함수
+export function incCount(diff) {
+    return {
+        type: INC_COUNT,
+        payload: {diff},
+    }
+}
+
+export function decCount(diff) {
+    return {
+        type: DEC_COUNT,
+        payload: {diff},
+    }
+}
+
+// 초기값
+const initialState = {number: 0};
+
+
+// 리듀서 선언
+export default function counter(state = initialState, action) {
+    switch (action.type) {
+      case INC_COUNT:
+        return {
+          ...state,
+          number: state.number + action.payload.diff
+        }
+      case DEC_COUNT:
+        return {
+          ...state,
+          number: state.number - action.payload.diff
+        };
+      default:
+        return state;
+    }
+  }
+```
+- store 생성
+```jsx
+import { legacy_createStore as createStore } from "redux";
+import counter from "./counter";
+
+const store = createStore(counter);
+
+export default store;
+```
+- modules에서 store를 가져오도록 수정
+```jsx
+import { Provider } from 'react-redux';
+import store from './modules';
+import CounterContainer from "./containers/CounterContainer";
+
+function App() {
+  return (
+    <Provider store={store}>
+      <CounterContainer/>
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+- container에서 action 생성함수를 불러오는 경로만 변경해주면 된다.
+```jsx
+import { useDispatch, useSelector } from 'react-redux';
+import Counter from '../components/Counter';
+import { incCount, decCount } from '../modules/counter';
+
+function CounterContainer() {
+    const dispatch = useDispatch();
+    const number = useSelector((state) => state.number);
+
+    const onIncrease = () => {
+        dispatch(incCount(1));
+    }
+
+    const onDecrease = () => {
+        dispatch(decCount(1));
+    }
+
+    return <Counter number={number} onIncrease={onIncrease} onDecrease={onDecrease} />
+}
+
+export default CounterContainer
+```
+## Redux 활용해보기
+
+### 1) 유저정보 리스트 다루기
+
+유저 데이터를 활용해서 상태관리를 진행한다.
+
+유저 정보를 추가 제거하는 과정을 다룬다.
+
+```jsx
+export const userData = [
+    {
+      id: 1,
+      name: 'Leanne Graham',
+      email: 'Sincere@april.biz',
+    },
+    {
+      id: 2,
+      name: 'Ervin Howell',
+      email: 'Shanna@melissa.tv',
+    },
+    {
+      id: 3,
+      name: 'Clementine Bauch',
+      email: 'Nathan@yesenia.net',
+    },
+    {
+      id: 4,
+      name: 'Patricia Lebsack',
+      email: 'Julianne.OConner@kory.org',
+    },
+    {
+      id: 5,
+      name: 'Chelsey Dietrich',
+      email: 'Lucio_Hettinger@annie.ca',
+    },
+    {
+      id: 6,
+      name: 'Mrs. Dennis Schulist',
+      email: 'Karley_Dach@jasper.info',
+    },
+    {
+      id: 7,
+      name: 'Kurtis Weissnat',
+      email: 'Telly.Hoeger@billy.biz',
+    },
+    {
+      id: 8,
+      name: 'Nicholas Runolfsdottir V',
+      email: 'Sherwood@rosamond.me',
+    },
+    {
+      id: 9,
+      name: 'Glenna Reichert',
+      email: 'Chaim_McDermott@dana.io',
+    },
+    {
+      id: 10,
+      name: 'Clementina DuBuque',
+      email: 'Rey.Padberg@karina.biz',
+    },
+]
+```
+
+ducks패턴으로 진행한다.
+`modules/user.js`
+
+```jsx
+import { userData } from '../constants/userData'
+
+// 액션 타입
+const ADD_USER = 'user/ADD_USER'
+
+// 액션 생성 함수
+// 백엔드가 없기 때문에 이렇게 작성되어있는 것뿐이며, 실제 서비스의 경우 이 부분이 없을 겁니다!
+// 데이터의 id 는 백엔드에서 부여해주는 것이기 때문입니다!
+let nextId = userData.length + 1
+export function addUser(userInfo) {
+    return {
+        type: ADD_USER,
+        payload: { ...userInfo, id: nextId++ },
+    }
+}
+
+// 초기값
+const initialState = userData
+
+// 리듀서 선언
+export default function user(state = initialState, action) {
+    switch (action.type) {
+        case ADD_USER:
+            return [...state, { ...action.payload }]
+        default:
+            return state
+    }
+}
+
+```
+
+### 2) 유저 정보 Container -Presenter
+
+containers 폴더 내부에 UserContainer.jsx를 만들어 준다.
+
+```jsx
+import { useDispatch, useSelector } from 'react-redux';
+import User from '../components/User';
+import { addUser } from '../modules/user';
+
+function UserContainer() {
+    const dispatch = useDispatch();
+    const users = useSelector((state) => state);
+
+    const onAdd = (userInfo) => {
+        dispatch(addUser(userInfo));
+    }
+
+    return <User users={users} onAdd={onAdd} />
+}
+
+export default UserContainer
+```
+
+components 폴터 내부에는 아래처럼 input을 받아서 추가할수 있도록 User컴포넌트를 작성한다.
+
+```jsx
+import React, { useState } from 'react'
+
+function User({users, onAdd}) {
+	// 지금은 우선 redux 관련 코드만 container 에 작성하는 방식으로 진행했으나,
+	// 아래 코드들도 나눠주는게 좋겠죠?
+  const [userInput, setUserInput] = useState({})
+  const onInputChange = (e) => {
+    const {name, value} = e.target
+    setUserInput({...userInput, [name]: value})
+  }
+
+  return (
+    <div>
+        {users.map((user) => (<p key={user.id}>{user.name}</p>))}
+        <input name="name" onChange={onInputChange}></input>
+        <input name="email" onChange={onInputChange}></input>
+        <button onClick={() => onAdd(userInput)}>추가하기</button>
+    </div>
+  )
+}
+
+export default User
+```
+
+### 3) Combine Reducer
+store 에 앞서 작성했던 counter 관련 상태와 리듀서만 담겨있다.
+만약 리듀서가 여러개라면, 어떻게 코드를 작성하면 되는가?
+
+여러개의 리듀서를 `combineReducers` 라는 함수로 감싸고, 해당 함수의 리턴값으로 store를 만들면 된다.
+
+
+Container를 모두 볼수 있게 app.js에 불러온다.
+
+```jsx
+import { Provider } from 'react-redux';
+import store from './modules';
+import CounterContainer from "./containers/CounterContainer";
+import UserContainer from "./containers/UserContainer"
+
+function App() {
+  return (
+    <Provider store={store}>
+      <CounterContainer/>
+      <UserContainer/>
+    </Provider>
+  );
+}
+
+export default App;
+```
+
+현재 store에는 아직도 coutner 관련 상태와 리듀서만 담겨있어서 user 관련 상태를 추가해줄 필요가 있다. 
+
+index.js에서 combineReducers를 사용하여 리듀서를 결합한다.
+
+```jsx
+import { legacy_createStore as createStore } from "redux";
+import { combineReducers } from "redux";
+import counter from "./counter";
+import user from './user';
+
+const rootReducer = combineReducers({
+    counter,
+    user
+})
+
+const store = createStore(rootReducer);
+
+export default store;
+```
+App.jsx에서 사용하던 store의 경로를 변경해줘야한다.
+
+```jsx
+import store from './store/store'
+// import store from './modules'
+
+function App() {
+    return (
+        <Provider store={store}>
+            <CounterContainer />
+            <UserContainer />
+        </Provider>
+    )
+}
+```
+### 4) Combine Reducer 이후 Container 수정
+
+combineReducer를 사용하고 난 뒤에는 useSelector를 쓰는 방식이 달라진다.
+
+state.number -> state.counter.number
+
+User 컴포넌트의 경우 state.user로 작성
+```jsx
+
+  const users = useSelector((state) => state.user);
+
+```
+
+![](https://velog.velcdn.com/images/jhs000123/post/e94af306-94de-4788-b1d7-b38652d26e39/image.png)
+
+이제 카운터와 유저 목록 표시가 된다.
+
+### 5) 유저 제거하는 버튼을 만들고 싶어
+
+1. DELTE_USER 액션 타입 및 액션 추가
+2. 리듀서에 DELTE_USER 케이스를 추가
+```jsx
+import { userData } from '../constants/userData'
+
+// 액션 타입
+const ADD_USER = 'user/ADD_USER'
+const DELETE_USER = 'user/DELETE_USER'
+
+// 액션 생성 함수
+// 백엔드가 없기 때문에 이렇게 작성되어있는 것뿐이며, 실제 서비스의 경우 이 부분이 없을 겁니다!
+// 데이터의 id 는 백엔드에서 부여해주는 것이기 때문입니다!
+let nextId = userData.length + 1
+export function addUser(userInfo) {
+    return {
+        type: ADD_USER,
+        payload: { ...userInfo, id: nextId++ },
+    }
+}
+
+export function deleteUser(userId) {
+    return {
+        type: DELETE_USER,
+        payload: userId,
+    }
+}
+
+// 초기값
+const initialState = userData
+
+// 리듀서 선언
+export default function user(state = initialState, action) {
+    switch (action.type) {
+        case ADD_USER:
+            return [...state, { ...action.payload }]
+        case DELETE_USER:
+            return state.filter((user) => user.id !== action.payload)
+        default:
+            return state
+    }
+}
+
+```
+3. onDelete함수를 제작해서 props로 전달
+```jsx
+import React from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { addUser, deleteUser } from '../modules/user'
+import User from './../components/User'
+
+function UserContainer() {
+    const dispatch = useDispatch()
+    const users = useSelector((state) => state.user)
+
+    const onAdd = (userInfo) => {
+        dispatch(addUser(userInfo))
+    }
+
+    const onDelete = (id) => {
+        dispatch(deleteUser(id))
+    }
+
+    return <User users={users} onAdd={onAdd} onDelete={onDelete} />
+}
+
+export default UserContainer
+
+```
+4. 컴포넌트에서 onDelete함수를 받아서 삭제버튼 제작
+
+```jsx
+import React, { useState } from 'react'
+
+function User({ users, onAdd, onDelete }) {
+    const [userInput, setUserInput] = useState({})
+    const onInputChange = (e) => {
+        const { name, value } = e.target
+        setUserInput({ ...userInput, [name]: value })
+    }
+    return (
+        <div>
+            {users.map((user) => (
+                <div key={user.id}>
+                    <p>{user.name}</p>
+                    <button onClick={() => onDelete(user.id)}>제거</button>
+                </div>
+            ))}
+            <input name="name" onChange={onInputChange} />
+            <input name="email" onChange={onInputChange} />
+            <button onClick={() => onAdd(userInput)}>추가</button>
+        </div>
+    )
+}
+
+export default User
+
+```
+
+![](https://velog.velcdn.com/images/jhs000123/post/f42c2c02-d961-43b7-b9ff-42a6b9dc2a81/image.gif)
+
+제거 버튼을 누르면 유저가 사라진다.
+
+
+## Redux Middleware
+
+### 1) redux logger
+ redux로 실행되는 로직에 대해서 logging, 즉 콘솔창에 기록을 남겨주는 역할을 담당하는 리덕스 미들웨어이다. 특별한건 아니고 그냥 리덕스가 작동하는 과정에서 store,action 객체를 다루면서 특정한 기능을 수행하는 함수를 미들웨어라고 한다. 
+ 
+ > yarn add redux-logger --dev
+ 
+ 그리고 store에서 createStore에 추가적으로 프로퍼티를 작성한다.
+ ```jsx
+import { applyMiddleware, legacy_createStore as createStore } from "redux";
+import logger from 'redux-logger';
+
+const store = createStore(rootReducer, applyMiddleware(logger));
+ ```
+ 그리고 다시 시작해서 아무거나 삭제를 해보면
+ 콘솔창에서 아래와 같이 action, prev state, nexstate를 보여주게된다. 
+ 
+ ![](https://velog.velcdn.com/images/jhs000123/post/42f2da95-6252-459b-87c1-77cda086fc95/image.png)
+
+### 2) redux devtools
+크롬에서 redux 전용 개발자 도구를 활용할수 있도록 해준다.
+[https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd)
+여기를 들어가서 확장 프로그램 설치를 해주고 store에서 코드를 추가한 다음 실행하면 
+
+```jsx
+import counter from '../reducers/counter'
+import { applyMiddleware, combineReducers, compose, legacy_createStore as createStore } from 'redux'
+import user from '../modules/user'
+import logger from 'redux-logger'
+const rootReducer = combineReducers({
+    counter,
+    user,
+})
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+const store = createStore(rootReducer, composeEnhancers(applyMiddleware(logger)))
+
+export default store
+
+```
+
+![](https://velog.velcdn.com/images/jhs000123/post/c918d796-78df-4c98-971b-cde90cf71434/image.png)
+
+이렇게 state와 동작한 기록들을 확인해볼수 있다.
+
+### 3) redux persist
+
+redux로 관리하는 상태값을 브라우저에 저장해놓고, 새로고침 후에도 해당 값을 불러와서 사용할수 있도록 도와주는 라이브러리이다.
+
+> yarn add redux-persist
+
+1. store.js 에 해당 config 코드를 추가한다
+2. config가 적용된 psersistedReducer를 생성한다. 현재 counter 리듀서의 state는 저장하고 user는 저장하지 않는 것으로 설정한 상태이며 데이터값을 로컬 스토리지에 저장한다.
+3. 해당 store를 persistStore에 감싸준 것을 persistor 라는 이름으로 export 한다. 
+
+- localStorage → `import storage from 'redux-persist/lib/storage'`
+- sessionStorage → `import storageSession from 'redux-persist/lib/storage/session'`
+
+```jsx
+
+import { applyMiddleware, combineReducers, compose, legacy_createStore as createStore } from 'redux'
+import user from '../modules/user'
+import storage from 'redux-persist/lib/storage'
+import { persistReducer, persistStore } from 'redux-persist'
+import counter from './../modules/counter'
+
+const persistConfig = {
+    key: 'root', // 임의의 key 값
+    storage: storage, // 정확히 어떤 storage 에 저장할지
+    whitelist: ['counter'], // 값을 저장할 리듀서명
+    blacklist: ['user'], // 값을 저장하지 않을 리듀서명
+}
+const rootReducer = combineReducers({
+    counter,
+    user,
+})
+
+const persistedReducer = persistReducer(persistConfig, rootReducer)
+
+export const store = createStore(persistedReducer)
+export const persistor = persistStore(store)
+// const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+
+
+```
+
+그다음 app.jsx에서 `PersistGate`로 컨테이너를 감싸고 ,persistStore로 만든 persistor를 명시하면 된다.
+
+```jsx
+import { Provider } from 'react-redux'
+import { PersistGate } from 'redux-persist/integration/react'
+import CounterContainer from './containers/CounterContainer'
+import UserContainer from './containers/UserContainer'
+import { persistor, store } from './store/store'
+// import store from './modules'
+import { Loading } from './../../seventhApp/src/components/Common/Loading/style'
+
+function App() {
+    return (
+        <Provider store={store}>
+            <PersistGate persistor={persistor}>
+                <CounterContainer />
+                <UserContainer />
+            </PersistGate>
+        </Provider>
+    )
+}
+
+export default App
+
+```
+
+이렇게 해주면 counter 컴포너트의 숫자를 변경한 다음에 새로고침을 해도 그 값이 유지되는 것을 확인할수 있다.
+
+
+
+![](https://velog.velcdn.com/images/jhs000123/post/e3d6fc1c-1f5e-4aac-a39f-e8471ca8997c/image.png)
+
+
+
+
